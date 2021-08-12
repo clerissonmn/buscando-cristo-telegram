@@ -4,9 +4,9 @@ from datetime import datetime as dt
 from pandas.io.parsers import read_csv
 from telethon import TelegramClient
 
-from lib.funcoes import (_dias_da_semana, apaga_msg_todas,
-                         baixa_csv_do_gsheets, carrega_segredos,
-                         envia_mensagem, formata_mensagem, pega_horarios)
+from funcoes.helper import (_dias_da_semana, baixa_csv_do_gsheets,
+                            carrega_segredos, formata_mensagem, pega_horarios)
+from funcoes.telegram import apaga_msg_todas, envia_mensagem, teste
 
 #%% [ Carrega os segredos ]
 
@@ -18,14 +18,16 @@ api_id = segredos["api_id"]
 api_hash = segredos["api_hash"]
 bot_token = segredos["bot_token"]
 
+
 #%% [ Define os parâmetros do Telegram ]
 client = TelegramClient("anon", api_id, api_hash)
-canal = "https://t.me/missaseconfissoes"
+canal = segredos["canal"]
 
 #%% [ Apaga as mensagens ]
 print(f"==> Apagando as mensagens do canal")
 with client:
     client.loop.run_until_complete(apaga_msg_todas(client=client, canal=canal))
+    # client.loop.run_until_complete(teste(client=client, canal=canal))
 
 #%% [ Envia as mensagens ]
 
@@ -33,32 +35,36 @@ with client:
 tabela_csv = baixa_csv_do_gsheets(doc_key=doc_key, sheet_name=sheet_name)
 df = read_csv(tabela_csv)
 
+hoje = _dias_da_semana[dt.today().strftime("%A")]
 programacao_lista = ["Missa", "Confissão"]
 cidade_lista = ["Belém", "Ananindeua"]
-hoje = _dias_da_semana[dt.today().strftime("%A")]
+dia_da_semana_lista = hoje #['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
 
 for programacao in programacao_lista:
     for cidade in cidade_lista:
+        for dia_da_semana in dia_da_semana_lista:
+            print(f"==> Enviando {programacao} em {cidade} n(a) {dia_da_semana} ")
 
-        print(f"==> Enviando {programacao} em {cidade}")
-
-        resultado = pega_horarios(
-            df=df,
-            programacao=programacao,
-            natureza="Presencial",
-            cidade=cidade,
-            bairro="todos",
-            dia_da_semana="hoje",
-            formato_saida="dict",
-        )
-
-        # Formata em uma mensagem
-        mensagem = formata_mensagem(
-            resultado=resultado, cidade=cidade, programacao=programacao, dia=hoje
-        )
-
-        # Envia a mensagem
-        with client:
-            client.loop.run_until_complete(
-                envia_mensagem(client=client, canal=canal, mensagem=mensagem)
+            resultado = pega_horarios(
+                df=df,
+                programacao=programacao,
+                natureza="Presencial",
+                cidade=cidade,
+                bairro="todos",
+                dia_da_semana=dia_da_semana,
+                formato_saida="dict",
             )
+
+            # Formata em uma mensagem
+            mensagem = formata_mensagem(
+                resultado=resultado,
+                cidade=cidade,
+                programacao=programacao,
+                dia=dia_da_semana,
+            )
+
+            # Envia a mensagem
+            with client:
+                client.loop.run_until_complete(
+                    envia_mensagem(client=client, canal=canal, mensagem=mensagem)
+                )
