@@ -6,10 +6,9 @@ from telethon import TelegramClient
 
 from lib.funcoes import (_dias_da_semana, apaga_msg_todas,
                          baixa_csv_do_gsheets, carrega_segredos,
-                         envia_mensagem, formata_mensagem, pega_horarios,
-                         traduz)
+                         envia_mensagem, formata_mensagem, pega_horarios)
 
-# [ Carrega os segredos ]
+#%% [ Carrega os segredos ]
 
 segredos = carrega_segredos(file="segredos")
 
@@ -19,14 +18,18 @@ api_id = segredos["api_id"]
 api_hash = segredos["api_hash"]
 bot_token = segredos["bot_token"]
 
+#%% [ Define os parâmetros do Telegram ]
 client = TelegramClient("anon", api_id, api_hash)
 canal = "https://t.me/missaseconfissoes"
 
+#%% [ Apaga as mensagens ]
 print(f"==> Apagando as mensagens do canal")
 with client:
     client.loop.run_until_complete(apaga_msg_todas(client=client, canal=canal))
 
-#%% [ Faz a busca das informações]
+#%% [ Envia as mensagens ]
+
+# Carrega as informações de hoje
 tabela_csv = baixa_csv_do_gsheets(doc_key=doc_key, sheet_name=sheet_name)
 df = read_csv(tabela_csv)
 
@@ -49,10 +52,12 @@ for programacao in programacao_lista:
             formato_saida="dict",
         )
 
+        # Formata em uma mensagem
         mensagem = formata_mensagem(
             resultado=resultado, cidade=cidade, programacao=programacao, dia=hoje
         )
 
+        # Envia a mensagem
         with client:
             client.loop.run_until_complete(
                 envia_mensagem(client=client, canal=canal, mensagem=mensagem)
