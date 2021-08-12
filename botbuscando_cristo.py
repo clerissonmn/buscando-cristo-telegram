@@ -38,33 +38,32 @@ df = read_csv(tabela_csv)
 hoje = _dias_da_semana[dt.today().strftime("%A")]
 programacao_lista = ["Missa", "Confissão"]
 cidade_lista = ["Belém", "Ananindeua"]
-dia_da_semana_lista = hoje #['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
+dia_da_semana = hoje #['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
 
 for programacao in programacao_lista:
     for cidade in cidade_lista:
-        for dia_da_semana in dia_da_semana_lista:
-            print(f"==> Enviando {programacao} em {cidade} n(a) {dia_da_semana} ")
+        print(f"==> Enviando {programacao} em {cidade} para {dia_da_semana}")
 
-            resultado = pega_horarios(
-                df=df,
-                programacao=programacao,
-                natureza="Presencial",
-                cidade=cidade,
-                bairro="todos",
-                dia_da_semana=dia_da_semana,
-                formato_saida="dict",
+        resultado = pega_horarios(
+            df=df,
+            programacao=programacao,
+            natureza="Presencial",
+            cidade=cidade,
+            bairro="todos",
+            dia_da_semana=dia_da_semana,
+            formato_saida="dict",
+        )
+
+        # Formata em uma mensagem
+        mensagem = formata_mensagem(
+            resultado=resultado,
+            cidade=cidade,
+            programacao=programacao,
+            dia=dia_da_semana,
+        )
+
+        # Envia a mensagem
+        with client:
+            client.loop.run_until_complete(
+                envia_mensagem(client=client, canal=canal, mensagem=mensagem)
             )
-
-            # Formata em uma mensagem
-            mensagem = formata_mensagem(
-                resultado=resultado,
-                cidade=cidade,
-                programacao=programacao,
-                dia=dia_da_semana,
-            )
-
-            # Envia a mensagem
-            with client:
-                client.loop.run_until_complete(
-                    envia_mensagem(client=client, canal=canal, mensagem=mensagem)
-                )

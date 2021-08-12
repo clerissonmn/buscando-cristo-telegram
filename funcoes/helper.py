@@ -157,15 +157,15 @@ def formata_mensagem(
     resultado=None, cidade=None, natureza=None, programacao=None, dia=None
 ):
     mensagem = f"""  == {dia} ==
-#{programacao} em {cidade}:
+    
+#{programacao} em #{cidade}:
 """
 
     for i in resultado["Programação"].keys():
         mensagem += f"""
-**{resultado['Local'][i]}**
+**{resultado['Local'][i]} ({resultado['Contato'][i]})**
 **Horários:** {resultado['Horários'][i]}
 **Endereço:** {resultado['Endereço'][i]} ({resultado['Bairro'][i]})
-**Contato: ** {resultado['Contato'][i]}
 """
 
     return mensagem
