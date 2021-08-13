@@ -1,7 +1,6 @@
 from datetime import datetime as dt
 from io import BytesIO
 
-import pandas as pd
 import requests
 from pandas.io.parsers import read_csv
 
