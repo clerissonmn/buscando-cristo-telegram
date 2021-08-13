@@ -16,6 +16,8 @@ try:
     api_hash = segredos["api_hash"]
     bot_token = segredos["bot_token"]
     canal = segredos["canal"]
+    phone_number = segredos["phone_number"]
+    code = segredos['code']
 
 except FileNotFoundError:
 
@@ -98,7 +100,7 @@ async def main():
 
     await client.connect()
     if not await client.is_user_authorized():
-        await client.send_code_request(phone_number)
+#        await client.send_code_request(phone_number)
         me = await client.sign_in(phone_number, code)
 
     await client.run_until_disconnected()
