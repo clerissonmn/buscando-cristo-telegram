@@ -1,10 +1,10 @@
 from datetime import datetime as dt
 from io import BytesIO
 
-from pandas.io.parsers import read_csv
-import requests
-
 import pandas as pd
+import requests
+from pandas.io.parsers import read_csv
+
 
 def baixa_csv_do_gsheets(doc_key=None, sheet_name=None, verbose=False, to_file=None):
     """Baixa o csv a partir de uma planilha pública do google sheets.
@@ -89,6 +89,7 @@ _dias_da_semana = {
 
 hoje = _dias_da_semana[dt.today().strftime("%A")]
 
+
 def traduz(dia_em_ingles, traducao=_dias_da_semana):
     """Pega um dia da semana em inglês e traduz para pt-BR
 
@@ -170,6 +171,7 @@ def formata_mensagem(
 """
 
     return mensagem
+
 
 def mensagem_formatada(dia=None, doc_key=None, sheet_name=None):
 
