@@ -1,11 +1,11 @@
 from datetime import datetime as dt
 from io import BytesIO
 
-import pandas as pd
+from pandas.io.parsers import read_csv
 import requests
 
+import pandas as pd
 
-# ---------
 def baixa_csv_do_gsheets(doc_key=None, sheet_name=None, verbose=False, to_file=None):
     """Baixa o csv a partir de uma planilha pública do google sheets.
 
@@ -87,6 +87,7 @@ _dias_da_semana = {
     "Sunday": "Domingo",
 }
 
+hoje = _dias_da_semana[dt.today().strftime("%A")]
 
 def traduz(dia_em_ingles, traducao=_dias_da_semana):
     """Pega um dia da semana em inglês e traduz para pt-BR
@@ -156,8 +157,8 @@ def pega_horarios(
 def formata_mensagem(
     resultado=None, cidade=None, natureza=None, programacao=None, dia=None
 ):
-    mensagem = f"""  == {dia} ==
-    
+    mensagem = f"""  == {hoje} ==
+
 #{programacao} em #{cidade}:
 """
 
@@ -169,3 +170,43 @@ def formata_mensagem(
 """
 
     return mensagem
+
+def mensagem_formatada(dia=None, doc_key=None, sheet_name=None):
+
+    tabela_csv = baixa_csv_do_gsheets(doc_key=doc_key, sheet_name=sheet_name)
+    df = read_csv(tabela_csv)
+
+    if dia:
+        dia_da_semana = dia.capitalize()
+    else:
+        dia_da_semana = hoje
+
+    programacao_lista = ["Missa", "Confissão"]
+    cidade_lista = ["Belém", "Ananindeua"]
+
+    mensagens = list()
+    for programacao in programacao_lista:
+        for cidade in cidade_lista:
+            print(f"==> Enviando {programacao} em {cidade} para {dia_da_semana}")
+
+            resultado = pega_horarios(
+                df=df,
+                programacao=programacao,
+                natureza="Presencial",
+                cidade=cidade,
+                bairro="todos",
+                dia_da_semana=dia_da_semana,
+                formato_saida="dict",
+            )
+
+            # Formata em uma mensagem
+            mensagem = formata_mensagem(
+                resultado=resultado,
+                cidade=cidade,
+                programacao=programacao,
+                dia=dia_da_semana,
+            )
+
+            mensagens.append(mensagem)
+
+    return mensagens
