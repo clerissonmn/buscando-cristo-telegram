@@ -96,13 +96,11 @@ async def main():
 
     print("==> Iniciando o bot")
 
-#    client.start('+5591982366631','61273')
-
-    await client.connect()
-    if not await client.is_user_authorized():
+    await client.start(phone_number)
+#    await client.connect()
+#    if not await client.is_user_authorized():
 #        await client.send_code_request(phone_number)
-        me = await client.sign_in(phone_number, code)
-
+#        me = await client.sign_in(phone_number, code)
     await client.run_until_disconnected()
 if __name__ == "__main__":
     client.loop.run_until_complete(main())
