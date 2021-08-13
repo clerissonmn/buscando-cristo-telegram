@@ -15,6 +15,7 @@ try:
     api_id = segredos["api_id"]
     api_hash = segredos["api_hash"]
     bot_token = segredos["bot_token"]
+    canal = segredos["canal"]
 
 except FileNotFoundError:
 
@@ -23,10 +24,11 @@ except FileNotFoundError:
     api_id = environ["api_id"]
     api_hash = environ["api_hash"]
     bot_token = environ["bot_token"]
+    canal = environ["canal"]
 
 
 client = TelegramClient("anon", api_id, api_hash)
-canal = segredos["canal"]
+
 
 
 if __name__ == "__main__":
