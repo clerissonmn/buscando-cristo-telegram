@@ -3,15 +3,27 @@ from telethon import TelegramClient, events
 
 from funcoes.helper import carrega_segredos, hoje, mensagem_formatada
 
+from os import environ
 #%% [ Variáveis de configuração ]
 
-segredos = carrega_segredos(file="segredos")
+try:
 
-doc_key = segredos["doc_key"]
-sheet_name = segredos["sheet_name"]
-api_id = segredos["api_id"]
-api_hash = segredos["api_hash"]
-bot_token = segredos["bot_token"]
+    segredos = carrega_segredos(file="segredos")
+
+    doc_key = segredos["doc_key"]
+    sheet_name = segredos["sheet_name"]
+    api_id = segredos["api_id"]
+    api_hash = segredos["api_hash"]
+    bot_token = segredos["bot_token"]
+
+except FileNotFoundError:
+
+    doc_key = environ["doc_key"]
+    sheet_name = environ["sheet_name"]
+    api_id = environ["api_id"]
+    api_hash = environ["api_hash"]
+    bot_token = environ["bot_token"]
+
 
 client = TelegramClient("anon", api_id, api_hash)
 canal = segredos["canal"]
