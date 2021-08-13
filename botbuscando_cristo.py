@@ -1,5 +1,5 @@
 #%%
-from telethon import TelegramClient, events
+from telethon import TelegramClient, client, events
 
 from funcoes.helper import carrega_segredos, hoje, mensagem_formatada
 
@@ -25,13 +25,13 @@ except FileNotFoundError:
     api_hash = environ["api_hash"]
     bot_token = environ["bot_token"]
     canal = environ["canal"]
-
+    phone_number = environ["phone_number"]
+    code = environ['code']
 
 client = TelegramClient("anon", api_id, api_hash)
 
+async def main():
 
-
-if __name__ == "__main__":
     #%% [ Bot ]
     # Apaga todas as mensagens com o comnado /apaga
     @client.on(events.NewMessage(pattern=f"\/clear"))
@@ -93,5 +93,14 @@ if __name__ == "__main__":
             await client.delete_messages(canal, ids)
 
     print("==> Iniciando o bot")
-    client.start()
-    client.run_until_disconnected()
+
+#    client.start('+5591982366631','61273')
+
+    await client.connect()
+    if not await client.is_user_authorized():
+        await client.send_code_request(phone_number)
+        me = await client.sign_in(phone_number, code)
+
+    await client.run_until_disconnected()
+if __name__ == "__main__":
+    client.loop.run_until_complete(main())
