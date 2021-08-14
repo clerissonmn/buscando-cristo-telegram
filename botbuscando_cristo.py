@@ -7,28 +7,18 @@ from os import environ
 #%% [ Variáveis de configuração ]
 
 try:
-
     segredos = carrega_segredos(file="segredos")
-
-    doc_key = segredos["doc_key"]
-    sheet_name = segredos["sheet_name"]
-    api_id = segredos["api_id"]
-    api_hash = segredos["api_hash"]
-    bot_token = segredos["bot_token"]
-    canal = segredos["canal"]
-    phone_number = segredos["phone_number"]
-    code = segredos['code']
-
 except FileNotFoundError:
+    segredos = environ
 
-    doc_key = environ["doc_key"]
-    sheet_name = environ["sheet_name"]
-    api_id = environ["api_id"]
-    api_hash = environ["api_hash"]
-    bot_token = environ["bot_token"]
-    canal = environ["canal"]
-    phone_number = environ["phone_number"]
-    code = environ['code']
+doc_key = segredos["doc_key"]
+sheet_name = segredos["sheet_name"]
+api_id = segredos["api_id"]
+api_hash = segredos["api_hash"]
+bot_token = segredos["bot_token"]
+canal = segredos["canal"]
+phone_number = segredos["phone_number"]
+code = segredos['code']
 
 client = TelegramClient("anon", api_id, api_hash)
 
