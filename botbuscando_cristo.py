@@ -4,6 +4,9 @@ from telethon import TelegramClient, client, events
 from funcoes.helper import carrega_segredos, hoje, mensagem_formatada
 
 from os import environ
+
+from config import flags
+
 #%% [ Variáveis de configuração ]
 
 try:
@@ -68,7 +71,6 @@ async def main():
             dia = None
 
         if dia:
-
             # Envias as mensagens
             mensagens = mensagem_formatada(
                 dia=dia, doc_key=doc_key, sheet_name=sheet_name
@@ -92,5 +94,28 @@ async def main():
 #        await client.send_code_request(phone_number)
 #        me = await client.sign_in(phone_number, code)
     await client.run_until_disconnected()
+
+def teste_mensagens():
+    
+    dia_lista = ['domingo',
+           'segunda', 
+           'terça',
+           'quarta',
+           'quinta',
+           'sexta',
+           'sábado']
+
+    for dia in dia_lista:
+        mensagens = mensagem_formatada(
+                    dia=dia, doc_key=doc_key, sheet_name=sheet_name
+                )
+
+        with open(f'mensagens_{dia}.md', 'w') as file:
+            file.writelines(mensagens)
+
+
 if __name__ == "__main__":
-    client.loop.run_until_complete(main())
+    if flags['modo'].lower() == 'teste':
+        print(teste_mensagens())
+    else:
+        client.loop.run_until_complete(main())

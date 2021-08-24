@@ -109,12 +109,12 @@ def pega_horarios(
     natureza=None,
     cidade=None,
     bairro=None,
-    dia_da_semana="hoje",
+    dia_da_semana=None,
     formato_saida="dataframe",
 ):
-    """Função que retorna os horários do evento para os dias da semana escolhidos."""
+    """Função que retorna os horários do evento para um dia da semana escolhido."""
 
-    dias = [traduz(dt.today().strftime("%A")).split("-")[0]]
+    dias = [dia_da_semana]
 
     colunas = [
         "Natureza",
@@ -139,14 +139,17 @@ def pega_horarios(
                 return f"{cidade} inválida. Valores permitidos são Belém e Ananindeua."
             query += f" and '{cidade}' in Cidade"
 
-    df = (
-        df[colunas]
-        .query(query)  # Aplica a busca
-        .dropna(axis=1, how="all")  # Tira as colunas onde tudo é na
-        .dropna(axis=0, subset=dias)  # Tira apenas as linhas onde o dia da semana é na
-        .reset_index(drop=True)
-        .rename(columns={dias[0]: "Horários"})
-    )
+    df = df[colunas]
+    df = df.query(query)  # Aplica a busca
+    df = df.dropna(axis=1, how="all")  # Tira as colunas onde tudo é na
+
+    try:
+        df = df.dropna(axis=0, subset=dias)  # Tira apenas as linhas onde o dia da semana é na
+    except KeyError:
+        return None
+
+    df = df.reset_index(drop=True)
+    df = df.rename(columns={dias[0]: "Horários"})
 
     if formato_saida == "dict":
         return df.to_dict()
@@ -157,7 +160,7 @@ def pega_horarios(
 def formata_mensagem(
     resultado=None, cidade=None, natureza=None, programacao=None, dia=None
 ):
-    mensagem = f"""  == {hoje} ==
+    mensagem = f"""  == {dia} ==
 
 #{programacao} em #{cidade}:
 """
@@ -177,10 +180,7 @@ def mensagem_formatada(dia=None, doc_key=None, sheet_name=None):
     tabela_csv = baixa_csv_do_gsheets(doc_key=doc_key, sheet_name=sheet_name)
     df = read_csv(tabela_csv)
 
-    if dia:
-        dia_da_semana = dia.capitalize()
-    else:
-        dia_da_semana = hoje
+    dia_da_semana = dia.capitalize()
 
     programacao_lista = ["Missa", "Confissão"]
     cidade_lista = ["Belém", "Ananindeua"]
@@ -200,14 +200,18 @@ def mensagem_formatada(dia=None, doc_key=None, sheet_name=None):
                 formato_saida="dict",
             )
 
-            # Formata em uma mensagem
-            mensagem = formata_mensagem(
-                resultado=resultado,
-                cidade=cidade,
-                programacao=programacao,
-                dia=dia_da_semana,
-            )
+            # pega_horário vai retornar None caso não haja
+            # programação para o dia da semana recebido
+            if resultado is not None:
 
-            mensagens.append(mensagem)
+                # Formata em uma mensagem
+                mensagem = formata_mensagem(
+                    resultado=resultado,
+                    cidade=cidade,
+                    programacao=programacao,
+                    dia=dia_da_semana,
+                )
+
+                mensagens.append(mensagem)
 
     return mensagens
