@@ -40,7 +40,7 @@ def baixa_csv_do_gsheets(doc_key=None, sheet_name=None, verbose=False, to_file=N
     return raw_csv
 
 
-def carrega_segredos(file=None, verbose=False):
+def carrega_segredos(file=None, verbose=False, delim="="):
     """Parse que cria um dict no formato {chave : valor} a partir
     do arquivo contendo os segredos no formato chave = valor.
 
@@ -55,7 +55,7 @@ def carrega_segredos(file=None, verbose=False):
     segredos = dict()
     for linha in open(file).readlines():
 
-        key, value = linha.split("=")
+        key, value = linha.split(delim)
 
         # Sanitize string
         saitizar = "'\" \n"
@@ -144,7 +144,9 @@ def pega_horarios(
     df = df.dropna(axis=1, how="all")  # Tira as colunas onde tudo é na
 
     try:
-        df = df.dropna(axis=0, subset=dias)  # Tira apenas as linhas onde o dia da semana é na
+        df = df.dropna(
+            axis=0, subset=dias
+        )  # Tira apenas as linhas onde o dia da semana é na
     except KeyError:
         return None
 

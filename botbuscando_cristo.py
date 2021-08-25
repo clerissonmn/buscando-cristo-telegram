@@ -1,16 +1,17 @@
 #%%
-from telethon import TelegramClient, client, events
-
-from funcoes.helper import carrega_segredos, hoje, mensagem_formatada
-
 from os import environ
 
+from telethon import TelegramClient, client, events
+from telethon.sessions import StringSession
+from telethon.sync import TelegramClient
+
 from config import flags
+from funcoes.helper import carrega_segredos, hoje, mensagem_formatada
 
 #%% [ Variáveis de configuração ]
 
 try:
-    segredos = carrega_segredos(file="segredos")
+    segredos = carrega_segredos(file="segredos", delim="=>")
 except FileNotFoundError:
     segredos = environ
 
@@ -20,12 +21,14 @@ api_id = segredos["api_id"]
 api_hash = segredos["api_hash"]
 bot_token = segredos["bot_token"]
 canal = segredos["canal"]
-phone_number = segredos["phone_number"]
-code = segredos['code']
+session_string = segredos["session_string"]
 
-client = TelegramClient("anon", api_id, api_hash)
+client = TelegramClient(StringSession(session_string), api_id, api_hash)
 
-async def main():
+
+async def main(client):
+
+    print("==> Aplicação corretamente iniciada.")
 
     #%% [ Bot ]
     # Apaga todas as mensagens com o comnado /apaga
@@ -86,36 +89,25 @@ async def main():
             ]
             await client.delete_messages(canal, ids)
 
-    print("==> Iniciando o bot")
+    print("===> Bot operante.")
 
-    await client.start(phone_number)
-#    await client.connect()
-#    if not await client.is_user_authorized():
-#        await client.send_code_request(phone_number)
-#        me = await client.sign_in(phone_number, code)
+    await client.start()
     await client.run_until_disconnected()
 
+
 def teste_mensagens():
-    
-    dia_lista = ['domingo',
-           'segunda', 
-           'terça',
-           'quarta',
-           'quinta',
-           'sexta',
-           'sábado']
+
+    dia_lista = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"]
 
     for dia in dia_lista:
-        mensagens = mensagem_formatada(
-                    dia=dia, doc_key=doc_key, sheet_name=sheet_name
-                )
+        mensagens = mensagem_formatada(dia=dia, doc_key=doc_key, sheet_name=sheet_name)
 
-        with open(f'mensagens_{dia}.md', 'w') as file:
+        with open(f"mensagens_{dia}.md", "w") as file:
             file.writelines(mensagens)
 
 
 if __name__ == "__main__":
-    if flags['modo'].lower() == 'teste':
+    if flags["modo"].lower() == "teste":
         print(teste_mensagens())
     else:
-        client.loop.run_until_complete(main())
+        client.loop.run_until_complete(main(client))

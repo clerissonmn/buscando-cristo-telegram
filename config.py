@@ -1,5 +1,3 @@
 # Flags
 
-flags = {
-    'modo':'produção' # teste, produção
-}
+flags = {"modo": "produção"}  # teste, produção
