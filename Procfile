@@ -1,1 +1,1 @@
-worker: python botbuscando_cristo.py
+bot: python botbuscando_cristo.py
