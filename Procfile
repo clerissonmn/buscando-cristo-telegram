@@ -1,1 +1,1 @@
-bot: python botbuscando_cristo.py
+web: python botbuscando_cristo.py
