@@ -1,4 +1,5 @@
 from datetime import datetime as dt
+from datetime import timedelta
 from io import BytesIO
 
 import requests
@@ -76,7 +77,7 @@ def _vprint(verbose, *args, **kwargs):
         print("==>", *args, **kwargs)
 
 
-_dias_da_semana = {
+_traduz_dias_da_semana = {
     "Monday": "Segunda-feira",
     "Tuesday": "Terça-feira",
     "Wednesday": "Quarta-feira",
@@ -86,22 +87,11 @@ _dias_da_semana = {
     "Sunday": "Domingo",
 }
 
-hoje = _dias_da_semana[dt.today().strftime("%A")]
+hoje_timestamp = dt.today()
+amanha_timestamp = hoje_timestamp + timedelta(days=1)
 
-
-def traduz(dia_em_ingles, traducao=_dias_da_semana):
-    """Pega um dia da semana em inglês e traduz para pt-BR
-
-    Args:
-        dia_em_ingles (str): Dia da semana em inglês.
-        traducao (dict): Dicionário contedo a tradução dos dias da semana.
-
-    Returns:
-        str: Dia da semana em pt-BR mas sem \"-feira\"
-    """
-
-    return traducao[dia_em_ingles].split("-")[0]
-
+hoje = _traduz_dias_da_semana[hoje_timestamp.strftime("%A")]
+amanha = _traduz_dias_da_semana[amanha_timestamp.strftime("%A")]
 
 def pega_horarios(
     df,
@@ -114,8 +104,6 @@ def pega_horarios(
 ):
     """Função que retorna os horários do evento para um dia da semana escolhido."""
 
-    dias = [dia_da_semana]
-
     colunas = [
         "Natureza",
         "Programação",
@@ -124,7 +112,7 @@ def pega_horarios(
         "Bairro",
         "Cidade",
         "Contato",
-    ] + dias
+    ] + [dia_da_semana]
 
     query = ""
 
@@ -145,13 +133,13 @@ def pega_horarios(
 
     try:
         df = df.dropna(
-            axis=0, subset=dias
+            axis=0, subset=[dia_da_semana]
         )  # Tira apenas as linhas onde o dia da semana é na
     except KeyError:
         return None
 
     df = df.reset_index(drop=True)
-    df = df.rename(columns={dias[0]: "Horários"})
+    df = df.rename(columns={dia_da_semana: "Horários"})
 
     if formato_saida == "dict":
         return df.to_dict()
@@ -159,12 +147,9 @@ def pega_horarios(
     return df
 
 
-def formata_mensagem(
-    resultado=None, cidade=None, natureza=None, programacao=None, dia=None
-):
-    mensagem = f"""  == {dia} ==
-
-#{programacao} em #{cidade}:
+def formata_mensagem(resultado=None, cidade=None, programacao=None, dia=None):
+    mensagem = f"""#{dia}
+#{programacao}_{cidade}:
 """
 
     for i in resultado["Programação"].keys():
@@ -182,15 +167,13 @@ def mensagem_formatada(dia=None, doc_key=None, sheet_name=None):
     tabela_csv = baixa_csv_do_gsheets(doc_key=doc_key, sheet_name=sheet_name)
     df = read_csv(tabela_csv)
 
-    dia_da_semana = dia.capitalize()
-
     programacao_lista = ["Missa", "Confissão"]
     cidade_lista = ["Belém", "Ananindeua"]
 
     mensagens = list()
     for programacao in programacao_lista:
         for cidade in cidade_lista:
-            print(f"==> Enviando {programacao} em {cidade} para {dia_da_semana}")
+            print(f"==> Enviando {programacao} em {cidade} para {dia}")
 
             resultado = pega_horarios(
                 df=df,
@@ -198,7 +181,7 @@ def mensagem_formatada(dia=None, doc_key=None, sheet_name=None):
                 natureza="Presencial",
                 cidade=cidade,
                 bairro="todos",
-                dia_da_semana=dia_da_semana,
+                dia_da_semana=dia.split('-')[0].capitalize(),
                 formato_saida="dict",
             )
 
@@ -211,9 +194,34 @@ def mensagem_formatada(dia=None, doc_key=None, sheet_name=None):
                     resultado=resultado,
                     cidade=cidade,
                     programacao=programacao,
-                    dia=dia_da_semana,
+                    dia=dia,
                 )
 
                 mensagens.append(mensagem)
 
     return mensagens
+
+texto_final = """Use as hashtags para navegar pelos horários.
+
+#Missa_Belém
+#Missa_Ananindeua
+#Confissão_Belém
+#Confissão_Ananindeua
+
+#Domingo
+#Segunda
+#Terça
+#Quarta
+#Quinta
+#Sexta
+#Sábado
+
+A tabela completa, com todos os dias da semana, pode sem acessada em:
+
+https://share.streamlit.io/clerissonmn/buscando-cristo
+
+E você pode contribuir enviando um horário não catalogado em:
+
+https://forms.gle/7LCVcEAgHAVosYdR6
+
+"""
